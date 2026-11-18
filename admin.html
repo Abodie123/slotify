@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SLOTIFY | Admin Portal</title>
+<style>
+:root{--purple:#6C00FF;--pink:#FF2E93;--lime:#C6FF00;--white:#fff;--dark:#0A0A23;--muted:#77778f;--line:#eceaf4;--bg:#f6f4fb;--green:#138a52;--red:#d92d54;--shadow:0 12px 35px rgba(25,12,60,.10)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--dark);font-family:Inter,Arial,sans-serif}button,input,select{font:inherit}button{cursor:pointer;border:0}
+.hidden{display:none!important}.login-wrap{min-height:100vh;display:grid;place-items:center;padding:22px;background:radial-gradient(circle at 15% 15%,#8c3cff 0,transparent 35%),linear-gradient(135deg,#0A0A23,#26005d)}
+.login-card{width:min(420px,100%);background:#fff;border-radius:26px;padding:34px;box-shadow:0 24px 80px #0005;text-align:center}.logo{font-weight:1000;letter-spacing:-3px;font-size:clamp(40px,7vw,64px);line-height:1;color:var(--purple);text-shadow:3px 3px 0 var(--pink),6px 7px 0 rgba(10,10,35,.13);margin:8px 0 18px}.logo span{color:var(--pink)}.login-card p{color:var(--muted);margin:0 0 22px}.field{width:100%;padding:14px 15px;border:1px solid #ddd8eb;border-radius:13px;outline:none;background:#fff}.field:focus{border-color:var(--purple);box-shadow:0 0 0 3px #6c00ff18}.primary{background:var(--purple);color:white;padding:13px 18px;border-radius:12px;font-weight:800}.primary:hover{filter:brightness(1.08)}.login-card .primary{width:100%;margin-top:12px}.error{color:var(--red);font-size:13px;font-weight:700;min-height:18px;margin-top:10px}
+header{background:var(--dark);color:#fff;padding:15px clamp(15px,4vw,48px);display:flex;align-items:center;justify-content:space-between;gap:15px;position:sticky;top:0;z-index:5;box-shadow:0 5px 25px #09091f30}header .logo{font-size:35px;margin:0;color:var(--lime);text-shadow:2px 2px 0 var(--pink),4px 5px 0 #0008}header .logo span{color:#fff}.head-right{display:flex;align-items:center;gap:10px}.admin-label{font-size:12px;color:#d8d5e8;font-weight:700}.logout{background:#fff;color:var(--dark);padding:10px 14px;border-radius:10px;font-weight:800}
+main{max-width:1400px;margin:auto;padding:24px clamp(13px,3vw,36px) 50px}.topline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:17px}.topline h1{font-size:clamp(23px,3vw,32px);margin:0}.refresh{background:var(--lime);color:var(--dark);padding:11px 16px;border-radius:11px;font-weight:900}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:23px}.stat{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);min-height:115px}.stat .label{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.5px}.stat .num{font-size:30px;font-weight:950;margin-top:8px}.stat small{display:block;color:var(--muted);font-weight:700;margin-top:3px}
+.tabs{display:flex;gap:8px;overflow:auto;padding:5px 1px 14px;margin-bottom:8px}.tab{white-space:nowrap;padding:11px 17px;border-radius:12px;background:#e9e5f3;color:#51466d;font-weight:850}.tab.active{background:var(--purple);color:#fff;box-shadow:0 6px 16px #6c00ff30}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:clamp(14px,2vw,22px);box-shadow:var(--shadow);min-height:240px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:15px}.panel-head h2{font-size:21px;margin:0}.tools{display:flex;gap:9px;flex-wrap:wrap}.tools .field{min-width:190px;width:auto;padding:10px 12px}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}.chip{background:#f0edf7;color:#554a70;padding:8px 12px;border-radius:20px;font-size:12px;font-weight:850}.chip.active{background:var(--dark);color:#fff}
+.list{display:grid;gap:12px}.card{border:1px solid var(--line);border-radius:15px;padding:15px;display:grid;gap:12px}.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.card h3{margin:0 0 5px;font-size:17px}.sub{color:var(--muted);font-size:13px;line-height:1.55;overflow-wrap:anywhere}.details{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:9px}.detail{background:#f8f7fb;border-radius:10px;padding:9px 10px;min-width:0}.detail b{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}.detail span{font-size:13px;font-weight:750;overflow-wrap:anywhere}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{padding:9px 12px;border-radius:10px;font-size:12px;font-weight:900}.approve{background:#e5f8ed;color:#087443}.reject,.danger{background:#ffe8ed;color:#b42345}.neutral{background:#eeeafa;color:#5b32a8}.lime{background:#f1ffd0;color:#344600}.status{padding:6px 10px;border-radius:30px;font-size:11px;font-weight:900;text-transform:capitalize;background:#eeeafa;color:#5b32a8;white-space:nowrap}.status.pending{background:#fff3d7;color:#996000}.status.confirmed,.status.active,.status.approved,.status.completed{background:#e4f8ed;color:#087443}.status.cancelled,.status.rejected{background:#ffe8ed;color:#b42345}.empty{padding:40px 12px;text-align:center;color:var(--muted);font-weight:700}.muted-note{font-size:12px;color:var(--muted);margin-top:12px}.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);background:var(--dark);color:#fff;padding:12px 18px;border-radius:12px;box-shadow:var(--shadow);z-index:20;opacity:0;pointer-events:none;transition:.25s;font-weight:800;max-width:calc(100% - 30px);text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}.offline{background:#fff0f1;color:#b42345;border:1px solid #ffcbd3;padding:10px 13px;border-radius:10px;font-weight:800;font-size:13px;margin-bottom:14px}
+@media(max-width:850px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){header{padding:12px 14px}header .logo{font-size:29px}.admin-label{display:none}.stats{gap:9px}.stat{padding:13px;min-height:100px}.stat .num{font-size:25px}.panel{padding:13px}.tools{width:100%}.tools .field{flex:1;min-width:130px}.card{padding:12px}.details{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<section id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <div class="logo">SLOTI<span>FY</span></div>
+    <p>Administrator Portal</p>
+    <form id="loginForm">
+      <input id="pinInput" class="field" type="password" inputmode="numeric" maxlength="12" placeholder="Enter Admin PIN" autocomplete="current-password" required>
+      <button class="primary" type="submit">Unlock Admin Portal</button>
+      <div id="loginError" class="error"></div>
+    </form>
+  </div>
+</section>
+
+<div id="app" class="hidden">
+<header>
+  <div class="logo">SLOTI<span>FY</span></div>
+  <div class="head-right"><span class="admin-label">ADMIN CONTROL CENTRE</span><button id="logoutBtn" class="logout">Logout ↗</button></div>
+</header>
+<main>
+  <div class="topline"><h1>Dashboard Overview</h1><button id="refreshBtn" class="refresh">↻ Refresh Data</button></div>
+  <div id="offlineNotice" class="offline hidden">Offline - check internet</div>
+  <section class="stats">
+    <div class="stat"><div class="label">Pending Bookings</div><div class="num" id="pendingBookings">—</div></div>
+    <div class="stat"><div class="label">Pending Featured</div><div class="num" id="pendingFeatured">—</div></div>
+    <div class="stat"><div class="label">Pending Verification</div><div class="num" id="pendingVerification">—</div></div>
+    <div class="stat"><div class="label">Earnings Today</div><div class="num" id="earningsToday">GH₵—</div><small id="earningsAll">All time: GH₵—</small></div>
+  </section>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="bookings">Bookings</button><button class="tab" data-tab="featured">Featured</button><button class="tab" data-tab="verification">Verification</button><button class="tab" data-tab="services">Services</button><button class="tab" data-tab="users">Users</button>
+  </nav>
+  <section class="panel">
+    <div class="panel-head"><h2 id="panelTitle">Bookings</h2><div class="tools" id="panelTools"></div></div>
+    <div id="panelContent"><div class="empty">Loading SLOTIFY data…</div></div>
+  </section>
+  <p class="muted-note">SLOTIFY Admin Portal · Data is read from and written to your existing Firestore project.</p>
+</main>
+</div>
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, doc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, addDoc, query, where, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA80kyQ6Wam1ejM9-ycfjlGVSC6_KMLM1Q",
+  authDomain: "unifind-ucc.firebaseapp.com",
+  projectId: "unifind-ucc",
+  storageBucket: "unifind-ucc.firebasestorage.app",
+  messagingSenderId: "741083895005",
+  appId: "1:741083895005:web:5598c8f39eea0d690ff734"
+};
+
+const appFirebase = initializeApp(firebaseConfig);
+const db = getFirestore(appFirebase);
+const $ = id => document.getElementById(id);
+const state = {tab:"bookings",bookings:[],featuredRequests:[],verificationRequests:[],services:[],users:[],bookingFilter:"all",search:"",category:"all",timer:null};
+const money = n => "GH₵" + (Number(n)||0).toFixed(2);
+const safe = v => String(v ?? "—");
+const norm = v => String(v ?? "").toLowerCase();
+const dateText = v => {
+  if (!v) return "—";
+  try { const d = v.toDate ? v.toDate() : (v.seconds ? new Date(v.seconds*1000) : new Date(v)); return isNaN(d) ? "—" : d.toLocaleString(); } catch { return "—"; }
+};
+const millis = v => { try { return v?.toDate ? v.toDate().getTime() : v?.seconds ? v.seconds*1000 : new Date(v).getTime() || 0; } catch { return 0; } };
+function toast(message="Done ✅"){const el=$("toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2600)}
+function setOffline(on){$("offlineNotice").classList.toggle("hidden",!on)}
+function showApp(){ $("loginScreen").classList.add("hidden"); $("app").classList.remove("hidden"); }
+function login(){
+  if(localStorage.getItem("slotifyAdminLoggedIn")==="true"){showApp();start();} 
+}
+$("loginForm").addEventListener("submit",e=>{e.preventDefault();if($("pinInput").value==="2026"){localStorage.setItem("slotifyAdminLoggedIn","true");$("loginError").textContent="";showApp();start();}else{$("loginError").textContent="Wrong PIN";$("pinInput").select();}});
+$("logoutBtn").onclick=()=>{localStorage.removeItem("slotifyAdminLoggedIn");if(state.timer)clearInterval(state.timer);$("app").classList.add("hidden");$("loginScreen").classList.remove("hidden");$("pinInput").value="";};
+$("refreshBtn").onclick=()=>refreshAll(true);
+$("tabs").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(!b)return;state.tab=b.dataset.tab;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));render();});
+$("panelTools").addEventListener("input",e=>{if(e.target.id==="searchInput"){state.search=e.target.value;renderContent();}});
+$("panelTools").addEventListener("change",e=>{if(e.target.id==="categoryFilter"){state.category=e.target.value;renderContent();}});
+$("panelContent").addEventListener("click",async e=>{
+ const b=e.target.closest("button[data-action]");if(!b)return;
+ const action=b.dataset.action,id=b.dataset.id,extra=b.dataset.extra;
+ try{
+  b.disabled=true;
+  if(action==="filter"){state.bookingFilter=id;render();return;}
+  if(action==="approve-booking")await approveBooking(id);
+  else if(action==="reject-booking")await rejectBooking(id);
+  else if(action==="complete-booking")await updateDoc(doc(db,"bookings",id),{status:"completed"});
+  else if(action==="approve-featured")await approveFeatured(id);
+  else if(action==="reject-featured")await updateDoc(doc(db,"featuredRequests",id),{status:"rejected"});
+  else if(action==="remove-featured")await removeFeatured(id,extra);
+  else if(action==="approve-verification")await approveVerification(id);
+  else if(action==="reject-verification")await updateDoc(doc(db,"verificationRequests",id),{status:"rejected"});
+  else if(action==="toggle-feature")await toggleService(id,"featured",extra!=="true");
+  else if(action==="toggle-verify")await toggleService(id,"verified",extra!=="true");
+  else if(action==="delete-service"){if(confirm("Delete this service permanently?"))await deleteDoc(doc(db,"services",id));}
+  else if(action==="toggle-user-verify")await updateUserVerified(id,extra!=="true");
+  await refreshAll(false);toast("Done ✅");
+ }catch(err){console.error(err);setOffline(true);toast("Action failed - check Firestore permissions");}
+ finally{b.disabled=false;}
+});
+function start(){refreshAll(false);if(state.timer)clearInterval(state.timer);state.timer=setInterval(()=>refreshAll(false),10000);}
+async function getCollection(name){const snap=await getDocs(collection(db,name));return snap.docs.map(d=>({id:d.id,...d.data()}));}
+async function refreshAll(showToast=false){
+ try{
+  const [bookings,featuredRequests,verificationRequests,services,users]=await Promise.all(["bookings","featuredRequests","verificationRequests","services","users"].map(getCollection));
+  state.bookings=bookings;state.featuredRequests=featuredRequests;state.verificationRequests=verificationRequests;state.services=services;state.users=users;
+  setOffline(false);updateStats();render();if(showToast)toast("Data refreshed ✅");
+ }catch(err){console.error("Firestore read failed:",err);setOffline(true);$("panelContent").innerHTML='<div class="empty">Offline - check internet. Unable to load SLOTIFY data.</div>';toast("Offline - check internet");}
+}
+function updateStats(){
+ $("pendingBookings").textContent=state.bookings.filter(x=>x.status==="pending").length;
+ $("pendingFeatured").textContent=state.featuredRequests.filter(x=>x.status==="pending").length;
+ $("pendingVerification").textContent=state.verificationRequests.filter(x=>x.status==="pending").length;
+ const today=new Date();today.setHours(0,0,0,0);const next=new Date(today);next.setDate(next.getDate()+1);
+ const confirmed=state.bookings.filter(x=>x.status==="confirmed"||x.status==="completed");
+ const todaySum=confirmed.filter(x=>{const t=millis(x.updatedAt||x.createdAt||x.date);return t>=today.getTime()&&t<next.getTime();}).reduce((s,x)=>s+(Number(x.bookingFee)||0),0);
+ const all=confirmed.reduce((s,x)=>s+(Number(x.bookingFee)||0),0);
+ $("earningsToday").textContent=money(todaySum);$("earningsAll").textContent="All time: "+money(all);
+}
+function render(){
+ const titles={bookings:"Bookings",featured:"Featured Requests",verification:"Verification Requests",services:"Services Management",users:"Users Management"};
+ $("panelTitle").textContent=titles[state.tab];buildTools();renderContent();
+}
+function buildTools(){
+ const el=$("panelTools");
+ if(state.tab==="bookings")el.innerHTML=`<input id="searchInput" class="field" placeholder="Search customer, service, transaction or phone…" value="${escapeAttr(state.search)}">`;
+ else if(state.tab==="services")el.innerHTML=`<input id="searchInput" class="field" placeholder="Search services…" value="${escapeAttr(state.search)}"><select id="categoryFilter" class="field"><option value="all">All categories</option>${[...new Set(state.services.map(x=>x.category).filter(Boolean))].sort().map(c=>`<option ${state.category===c?"selected":""} value="${escapeAttr(c)}">${escapeHtml(c)}</option>`).join("")}</select>`;
+ else if(state.tab==="users")el.innerHTML=`<input id="searchInput" class="field" placeholder="Search name or phone…" value="${escapeAttr(state.search)}">`;
+ else el.innerHTML="";
+}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function escapeAttr(s){return escapeHtml(s).replace(/`/g,"&#96;");}
+function statusPill(s){return `<span class="status ${escapeAttr(norm(s))}">${escapeHtml(s||"unknown")}</span>`;}
+function detail(label,value){return `<div class="detail"><b>${escapeHtml(label)}</b><span>${escapeHtml(value)}</span></div>`;}
+function card(title,subline,details,actions,status=""){return `<article class="card"><div class="card-top"><div><h3>${escapeHtml(title)}</h3><div class="sub">${escapeHtml(subline||"")}</div></div>${status?statusPill(status):""}</div><div class="details">${details}</div>${actions?`<div class="actions">${actions}</div>`:""}</article>`;}
+function btn(label,action,id,cls="neutral",extra=""){return `<button class="btn ${cls}" data-action="${action}" data-id="${escapeAttr(id)}" data-extra="${escapeAttr(extra)}">${label}</button>`;}
+function empty(text){return `<div class="empty">${text}</div>`;}
+function renderContent(){
+ const root=$("panelContent");
+ if(state.tab==="bookings"){
+  const chips=["all","pending","confirmed","cancelled","completed"];
+  let data=state.bookings.filter(x=>state.bookingFilter==="all"||x.status===state.bookingFilter);
+  if(state.search){const q=norm(state.search);data=data.filter(x=>[x.customerName,x.serviceTitle,x.transactionId,x.customerPhone,x.phone].some(v=>norm(v).includes(q)));}
+  data.sort((a,b)=>millis(b.createdAt||b.date)-millis(a.createdAt||a.date));
+  root.innerHTML=`<div class="chips">${chips.map(c=>`<button class="chip ${state.bookingFilter===c?"active":""}" data-action="filter" data-id="${c}">${c[0].toUpperCase()+c.slice(1)}</button>`).join("")}</div><div class="list">${data.map(x=>{
+   let actions="";if(x.status==="pending")actions=btn("Approve ✅","approve-booking",x.id,"approve")+btn("Reject ❌","reject-booking",x.id,"reject");
+   if(x.status==="confirmed")actions=btn("Mark Completed","complete-booking",x.id,"lime");
+   return card(x.customerName||"Customer",x.serviceTitle||"Service",detail("Phone",x.customerPhone)+detail("Date & time",`${safe(x.date)} · ${safe(x.time)}`)+detail("Price",money(x.price))+detail("Fee paid",money(x.bookingFee))+detail("Transaction ID",x.transactionId)+detail("Booking ID",x.bookingId||"Not assigned"),actions,x.status);
+  }).join("")||empty("No bookings match this filter.")}</div>`;
+ }else if(state.tab==="featured"){
+  const req=[...state.featuredRequests].sort((a,b)=>{const rank=x=>x.status==="pending"?0:x.status==="active"?1:2;return rank(a)-rank(b)||millis(b.createdAt)-millis(a.createdAt);});
+  const requests=req.filter(x=>x.status==="pending"||x.status==="active");
+  const reqHtml=requests.map(x=>card(x.entrepreneur||"Entrepreneur",x.serviceTitle||"Service",detail("Amount",money(x.paidAmount??15))+detail("Transaction ID",x.transactionId)+detail("Phone",x.phone)+detail("Date",dateText(x.createdAt)),x.status==="pending"?btn("Approve ⭐","approve-featured",x.id,"approve")+btn("Reject","reject-featured",x.id,"reject"):"",x.status)).join("");
+  const featured=state.services.filter(x=>x.featured===true);
+  root.innerHTML=`<h3>Requests (pending first)</h3><div class="list">${reqHtml||empty("No pending or active featured requests.")}</div><h3 style="margin-top:25px">Currently Featured Services</h3><div class="list">${featured.map(x=>card(x.title||"Service",x.entrepreneurName||"Entrepreneur",detail("Category",x.category)+detail("Price",money(x.price))+detail("Expires",dateText(x.featuredExpiresAt)),btn("Remove Featured","remove-featured",x.id,"reject"),"active")).join("")||empty("No services are currently featured.")}</div>`;
+ }else if(state.tab==="verification"){
+  const data=[...state.verificationRequests].sort((a,b)=>(a.status==="pending"?-1:1)-(b.status==="pending"?-1:1)||millis(b.createdAt)-millis(a.createdAt));
+  root.innerHTML=`<div class="list">${data.map(x=>card(x.entrepreneur||"Entrepreneur",`User UID: ${x.uid||"—"}`,detail("Amount",money(x.paidAmount??20))+detail("Transaction ID",x.transactionId)+detail("Phone",x.phone)+detail("Date",dateText(x.createdAt)),x.status==="pending"?btn("Approve ✔","approve-verification",x.id,"approve")+btn("Reject","reject-verification",x.id,"reject"):"",x.status)).join("")||empty("No verification requests found.")}</div>`;
+ }else if(state.tab==="services"){
+  let data=state.services.filter(x=>state.category==="all"||x.category===state.category);
+  if(state.search){const q=norm(state.search);data=data.filter(x=>[x.title,x.entrepreneurName,x.category].some(v=>norm(v).includes(q)));}
+  root.innerHTML=`<div class="list">${data.map(x=>card(x.title||"Untitled service",x.entrepreneurName||"Entrepreneur",detail("Price",money(x.price))+detail("Category",x.category)+detail("Verified",x.verified?"Yes ✓":"No")+detail("Featured",x.featured?"Yes ⭐":"No"),btn(x.featured?"Unfeature":"Feature","toggle-feature",x.id,"neutral",String(!!x.featured))+btn(x.verified?"Unverify":"Verify","toggle-verify",x.id,"lime",String(!!x.verified))+btn("Delete","delete-service",x.id,"danger"),x.featured?"active":"")).join("")||empty("No services found.")}</div>`;
+ }else if(state.tab==="users"){
+  let data=state.users;if(state.search){const q=norm(state.search);data=data.filter(x=>[x.name,x.phone].some(v=>norm(v).includes(q)));}
+  root.innerHTML=`<div class="list">${data.map(x=>card(x.name||"Unnamed user",x.role||"User",detail("Phone",x.phone)+detail("Role",x.role)+detail("Verified",x.verified?"Yes ✓":"No")+detail("Featured until",dateText(x.featuredUntil)),btn(x.verified?"Remove Verified":"Make Verified","toggle-user-verify",x.id,"neutral",String(!!x.verified)),"")).join("")||empty("No users found.")}</div>`;
+ }
+}
+async function createAlert(uid,title,message){
+ if(!uid)return;
+ await addDoc(collection(db,"alerts"),{uid,title,message,read:false,createdAt:serverTimestamp()});
+}
+async function approveBooking(id){
+ const ref=doc(db,"bookings",id),snap=await getDoc(ref);if(!snap.exists())throw new Error("Booking not found");
+ const data=snap.data();const bookingId="SLT-"+Math.random().toString(36).slice(2,8).toUpperCase();
+ await updateDoc(ref,{status:"confirmed",bookingId,confirmedAt:serverTimestamp(),updatedAt:serverTimestamp()});
+ await createAlert(data.uid,"Your booking confirmed",`Your booking for ${data.serviceTitle||"the service"} is confirmed. Booking ID: ${bookingId}`);
+}
+async function rejectBooking(id){
+ const ref=doc(db,"bookings",id),snap=await getDoc(ref);if(!snap.exists())throw new Error("Booking not found");
+ const data=snap.data();await updateDoc(ref,{status:"cancelled",updatedAt:serverTimestamp()});
+ await createAlert(data.uid,"Booking rejected","Sorry, your booking request was rejected. Please contact the service provider for more information.");
+}
+async function approveFeatured(id){
+ const ref=doc(db,"featuredRequests",id),snap=await getDoc(ref);if(!snap.exists())throw new Error("Request not found");
+ const r=snap.data(),expires=new Date(Date.now()+7*24*60*60*1000);
+ await updateDoc(ref,{status:"active",approvedAt:serverTimestamp(),expiresAt:Timestamp.fromDate(expires)});
+ if(r.serviceId)await updateDoc(doc(db,"services",r.serviceId),{featured:true,featuredExpiresAt:Timestamp.fromDate(expires)});
+ if(r.uid)await setDoc(doc(db,"users",r.uid),{featuredUntil:Timestamp.fromDate(expires)},{merge:true});
+ else if(r.entrepreneur) {const u=state.users.find(x=>x.name===r.entrepreneur);if(u)await setDoc(doc(db,"users",u.id),{featuredUntil:Timestamp.fromDate(expires)},{merge:true});}
+ await createAlert(r.uid,"You are Featured","Your service has been featured on SLOTIFY for 7 days.");
+}
+async function removeFeatured(serviceId){
+ await updateDoc(doc(db,"services",serviceId),{featured:false,featuredExpiresAt:null});
+}
+async function approveVerification(id){
+ const ref=doc(db,"verificationRequests",id),snap=await getDoc(ref);if(!snap.exists())throw new Error("Request not found");
+ const r=snap.data();await updateDoc(ref,{status:"approved",approvedAt:serverTimestamp()});
+ if(r.uid){
+  await setDoc(doc(db,"users",r.uid),{verified:true},{merge:true});
+  const matches=state.services.filter(s=>s.uid===r.uid||s.ownerUid===r.uid);
+  await Promise.all(matches.map(s=>updateDoc(doc(db,"services",s.id),{verified:true})));
+ }
+ await createAlert(r.uid,"You are Verified","Your SLOTIFY account has been verified successfully.");
+}
+async function toggleService(id,field,current){await updateDoc(doc(db,"services",id),{[field]:!current});}
+async function updateUserVerified(id,value){await setDoc(doc(db,"users",id),{verified:value},{merge:true});}
+login();
+</script>
+</body>
+</html>

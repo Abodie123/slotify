@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SLOTIFY – Campus Services Booking</title>
+<meta name="theme-color" content="#6C00FF">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{--p:#6C00FF;--k:#FF2E93;--l:#C6FF00;--w:#FFFFFF;--d:#0A0A23}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,'Segoe UI',Roboto,sans-serif;color:var(--d);background:rgba(108,0,255,.07);padding-bottom:140px;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+#app{max-width:1000px;margin:auto}
+a{color:var(--p);font-weight:700}
+.hdr{background:linear-gradient(135deg,var(--p) 30%,var(--k));color:var(--w);padding:20px 16px 24px;border-radius:0 0 34px 34px;position:relative;overflow:hidden;text-align:center;box-shadow:0 10px 30px rgba(108,0,255,.35)}
+.hdr.sm{padding:12px 16px 14px}.hdr.sm .logo{font-size:34px}.hdr.sm .tag{display:none}
+.back{position:absolute;left:10px;top:50%;transform:translateY(-50%);z-index:3;background:var(--l);color:var(--d);border:0;border-radius:20px;padding:9px 14px;font-weight:900;cursor:pointer;box-shadow:0 3px 0 #8fb500}
+.logo{font-weight:900;font-size:clamp(46px,13vw,88px);letter-spacing:3px;line-height:1.05;display:inline-block;position:relative;color:var(--w);text-shadow:0 1px 0 #C6FF00,0 2px 0 #C6FF00,0 3px 0 #C6FF00,0 4px 0 #FF2E93,0 5px 0 #FF2E93,0 6px 0 #0A0A23,0 13px 16px rgba(10,10,35,.5);animation:bounce 2.2s ease-in-out infinite}
+.logo::after{content:'SLOTIFY';position:absolute;left:0;top:0;color:transparent;text-shadow:none;background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.95) 50%,transparent 60%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;animation:shine 3s linear infinite}
+.tag{font-weight:700;margin-top:10px}
+.sh{position:absolute;pointer-events:none;animation:fl 6s ease-in-out infinite}
+.s1{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,var(--l) 40%,#8fb500);left:6%;top:18%}
+.s2{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,var(--k) 45%,#b0105e);right:8%;top:14%;animation-delay:-2s}
+.s3{width:56px;height:56px;border-radius:50%;border:9px solid var(--l);right:18%;bottom:6%;animation-delay:-3s}
+.s4{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#fff,var(--k));left:20%;bottom:10%;animation:fl 5s ease-in-out infinite,sp 8s linear infinite}
+@keyframes fl{50%{transform:translateY(-14px)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes shine{from{background-position:200% 0}to{background-position:-100% 0}}
+@keyframes sp{to{rotate:360deg}}
+.sec{padding:16px 14px 0}.sec h2{font-size:19px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.srch{display:flex;gap:8px}.srch .in{margin:0;border-radius:30px}
+.in{width:100%;padding:12px 14px;border:2px solid rgba(108,0,255,.25);border-radius:14px;background:var(--w);margin:5px 0 10px;outline:0}.in:focus{border-color:var(--p)}
+label{font-size:13px;font-weight:700}
+.btn{display:inline-block;text-align:center;text-decoration:none;background:var(--p);color:var(--w);border:0;padding:12px 18px;border-radius:30px;font-weight:800;cursor:pointer;box-shadow:0 4px 0 #3d0090;transition:.1s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #3d0090}
+.btn.l{background:var(--l);color:var(--d);box-shadow:0 4px 0 #8fb500}.btn.k{background:var(--k);color:var(--w);box-shadow:0 4px 0 #b0105e}
+.btn.o{background:var(--w);color:var(--p);box-shadow:inset 0 0 0 2px var(--p)}.btn.sm{padding:8px 13px;font-size:13px}.btn.w{display:block;width:100%;margin-top:10px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}
+.chip{flex:none;padding:8px 14px;border-radius:20px;background:var(--w);border:2px solid var(--p);color:var(--p);font-weight:700;cursor:pointer;text-align:center}.chip.on{background:var(--p);color:var(--w)}
+.chip.off{opacity:.35;pointer-events:none;text-decoration:line-through}
+.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;margin-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
+.hs{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 12px}.hs .card{flex:none;width:210px;scroll-snap-align:start}
+.card{background:var(--w);border-radius:20px;overflow:hidden;box-shadow:0 6px 18px rgba(108,0,255,.15);position:relative;cursor:pointer;transition:.15s}.card:hover{transform:translateY(-4px)}
+.im{height:120px;background:var(--p)}.im img{width:100%;height:100%;object-fit:cover;display:block}
+.ph{height:100%;display:grid;place-items:center;background:linear-gradient(135deg,var(--p),var(--k));color:var(--w);font-weight:900;letter-spacing:2px;text-shadow:0 2px 0 var(--d)}
+.cb{padding:10px}.t{font-weight:800;font-size:14px}.m{font-size:12px;opacity:.7;margin:2px 0}.pr{color:var(--k);font-weight:900}
+.fb{position:absolute;top:8px;left:8px;background:var(--l);color:var(--d);font-size:10px;font-weight:900;padding:4px 8px;border-radius:12px}
+.tk{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:#1DA1F2;color:#fff;font-size:10px;margin-left:4px;vertical-align:middle}
+.st{color:var(--k);letter-spacing:1px}
+.box{background:var(--w);border-radius:20px;padding:14px;margin-bottom:12px;box-shadow:0 6px 18px rgba(108,0,255,.12)}
+.cat{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.ct{border-radius:20px;padding:18px 10px;color:var(--w);font-weight:900;text-align:center;cursor:pointer;background:linear-gradient(135deg,var(--p),var(--k));box-shadow:0 5px 0 #3d0090;font-size:17px}.ct small{font-weight:600;font-size:11px;opacity:.9}
+.pill{display:inline-block;padding:4px 10px;border-radius:14px;font-size:12px;font-weight:800}
+.pending{background:var(--l);color:var(--d)}.confirmed{background:var(--p);color:var(--w)}.cancelled{background:var(--k);color:var(--w)}.completed{background:var(--d);color:var(--w)}
+.map{width:100%;height:220px;border:0;border-radius:16px;margin-top:8px}
+.al{display:flex;gap:10px;align-items:flex-start;cursor:pointer}.dot{width:10px;height:10px;border-radius:50%;background:var(--k);flex:none;margin-top:5px}
+.rl{display:flex;gap:10px;margin-bottom:6px}.rl button{flex:1;padding:14px 6px;border-radius:16px;border:2px solid var(--p);background:var(--w);font-weight:800;color:var(--p);cursor:pointer}.rl button.on{background:var(--p);color:var(--w)}
+.x{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:0;background:var(--k);color:var(--w);font-weight:900;cursor:pointer}
+.star{font-size:34px;background:none;border:0;cursor:pointer;color:var(--k)}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:50;display:flex;background:var(--w);box-shadow:0 -4px 20px rgba(108,0,255,.25);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;padding:8px 0 7px;font-size:11px;font-weight:700;color:var(--d);opacity:.6;position:relative;cursor:pointer}nav button b{display:block;font-size:20px}nav button.on{opacity:1;color:var(--p)}
+#bdg{position:absolute;top:2px;left:55%;background:#FF2D2D;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;display:none}
+#ban{position:fixed;left:8px;right:8px;bottom:calc(64px + env(safe-area-inset-bottom));z-index:49;background:linear-gradient(90deg,var(--p),var(--k));color:var(--w);border-radius:16px;padding:10px 14px;font-weight:800;font-size:13px;cursor:pointer;display:none;max-width:984px;margin:auto;box-shadow:0 6px 16px rgba(10,10,35,.35)}
+#ban i{background:var(--l);color:var(--d);font-style:normal;padding:3px 9px;border-radius:12px;margin-left:4px;white-space:nowrap}
+#fab{position:fixed;right:14px;bottom:calc(124px + env(safe-area-inset-bottom));z-index:51;width:58px;height:58px;border-radius:50%;border:0;font-size:26px;background:linear-gradient(135deg,var(--p),var(--k));color:var(--w);box-shadow:0 6px 18px rgba(108,0,255,.6);animation:bounce 2.2s infinite;cursor:pointer}
+.ov{position:fixed;inset:0;background:rgba(10,10,35,.6);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--w);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:26px 26px 0 0;padding:18px}
+@media(min-width:700px){.ov{align-items:center}.sheet{border-radius:26px}}
+.sheet h3{margin-bottom:10px}
+.mm{background:var(--p);color:var(--w);border-radius:16px;padding:14px;line-height:1.9;margin:8px 0}.mm .btn{margin-top:6px}
+#toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--d);color:var(--w);padding:11px 18px;border-radius:24px;z-index:300;font-weight:700;display:none;max-width:90%;text-align:center}
+#wel{position:fixed;inset:0;z-index:90;background:#F3EBFF;overflow:auto}
+.msg{padding:9px 13px;border-radius:16px;margin:6px 0;max-width:85%;font-size:14px;white-space:pre-line}
+.msg.bot{background:rgba(108,0,255,.1)}.msg.me{background:var(--k);color:var(--w);margin-left:auto}
+.mc{display:flex;gap:10px;align-items:center;background:var(--w);border:2px solid var(--p);border-radius:14px;padding:6px;margin:6px 0;cursor:pointer}.mc .im{width:56px;height:56px;border-radius:10px;overflow:hidden;flex:none}
+</style>
+</head>
+<body>
+<div id="app"><div id="pg"></div></div>
+<div id="ban"></div>
+<button id="fab" onclick="chat()" aria-label="Slotty AI" style="display:none">✨</button>
+<nav style="display:none">
+<button data-p="home" onclick="tab('home')"><b>🏠</b>Home</button>
+<button data-p="explore" onclick="tab('explore')"><b>🔍</b>Explore</button>
+<button data-p="alerts" onclick="tab('alerts')"><b>🔔</b>Alerts<span id="bdg"></span></button>
+<button data-p="bookings" onclick="tab('bookings')"><b>🎟️</b>Booking</button>
+<button data-p="profile" onclick="tab('profile')"><b>👤</b>Profile</button>
+</nav>
+<div id="wel" style="display:none"></div>
+<div id="toast"></div>
+
+<script>
+/* ========== FIREBASE ========== */
+const firebaseConfig = {
+  apiKey: "AIzaSyA80kyQ6WamIeJ9M9-ycfjlGVSC6_KMLM1Q",
+  authDomain: "unifind-ucc.firebaseapp.com",
+  projectId: "unifind-ucc",
+  storageBucket: "unifind-ucc.firebasestorage.app",
+  messagingSenderId: "741083895005",
+  appId: "1:741083895005:web:5598c8f39eea0d690ff734"
+};
+let db=null,auth=null;
+try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();auth=firebase.auth()}catch(e){console.warn('Firebase offline mode',e)}
+
+/* ========== HELPERS ========== */
+const $=s=>document.querySelector(s);
+const LS=(k,v)=>v===undefined?JSON.parse(localStorage.getItem(k)||'null'):localStorage.setItem(k,JSON.stringify(v));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const T=(p,ms=6000)=>Promise.race([p,new Promise((_,j)=>setTimeout(()=>j('timeout'),ms))]);
+const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',3400)};
+const rid=(n=6)=>{let s='',c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';while(n--)s+=c[Math.random()*c.length|0];return s};
+const ago=t=>{const m=(Date.now()-t)/6e4|0;return m<1?'just now':m<60?m+'m ago':m<1440?(m/60|0)+'h ago':(m/1440|0)+'d ago'};
+const tk=s=>s.verified?'<span class="tk">✔</span>':'';
+const ll=s=>[s.locationLat||5.116,s.locationLng||-1.2976];
+const km=(a,s)=>{const [la,lo]=ll(s),r=x=>x*Math.PI/180,h=Math.sin(r(la-a.lat)/2)**2+Math.cos(r(a.lat))*Math.cos(r(la))*Math.sin(r(lo-a.lng)/2)**2;return 12742*Math.asin(Math.sqrt(h))};
+let POS=null;
+const getPos=()=>new Promise(r=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>{POS={lat:p.coords.latitude,lng:p.coords.longitude};r(POS)},()=>r(null),{timeout:8000}):r(null));
+const PH='<div class="ph">SLOTIFY</div>';
+const imgTag=s=>`<img src="${esc(s.image)}" loading="lazy" alt="" onerror="this.parentNode.innerHTML=PH">`;
+const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const toM=t=>{const [h,m]=t.split(':');return +h*60+ +m},fmt=m=>String(m/60|0).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const t12=t=>{let [h,m]=t.split(':');h=+h;return (h%12||12)+':'+m+(h<12?' AM':' PM')};
+const wdays=s=>s.workDays&&s.workDays.length?s.workDays:[1,2,3,4,5,6];
+const wdText=s=>{const w=wdays(s);return w.length===7?'Every day':[1,2,3,4,5,6,0].filter(d=>w.includes(d)).map(d=>DN[d]).join(', ')};
+const slots=s=>{const a=[];for(let m=toM(s.openTime||'08:00');m<toM(s.closeTime||'18:00');m+=30)a.push(fmt(m));return a};
+const days=s=>{const w=wdays(s),a=[];for(let i=0;i<40&&a.length<14;i++){const d=new Date(Date.now()+i*864e5);if(w.includes(d.getDay()))a.push(d)}return a};
+const isApp=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+
+/* ========== DATA LAYER (Firebase main + memory + localStorage backup) ========== */
+const S={services:[],bookings:[],alerts:[],reviews:[],fr:[],vr:[],rt:{}};
+let user=LS('slt_user'),P='home',A=null,HS=[],Q='',H='',SB='',NEAR=false,TAB='Upcoming',BI=0,ROLE='customer',PAY=null,CH='',BS={},PICS=[],STAR=5,DIP=null;
+const MEM={},QU=LS('slt_q')||[];
+const rd2=c=>MEM[c]||(MEM[c]=LS('c_'+c)||{});
+const wr=(c,m)=>{MEM[c]=m;try{LS('c_'+c,m)}catch(e){}};
+const qs=()=>{try{LS('slt_q',QU)}catch(e){}};
+const get=c=>Object.entries(rd2(c)).map(([id,v])=>({...v,id}));
+async function save(col,id,data,quiet){
+  const m=rd2(col);m[id]={...(m[id]||{}),...data};wr(col,m);
+  if(!quiet)mk();
+  try{if(!db||!navigator.onLine)throw 0;await T(db.collection(col).doc(id).set(data,{merge:true}),9000)}
+  catch(e){QU.push({col,id,data});qs()}
+}
+async function del(col,id){
+  const m=rd2(col);delete m[id];wr(col,m);mk();
+  try{if(!db||!navigator.onLine)throw 0;await T(db.collection(col).doc(id).delete())}
+  catch(e){QU.push({col,id,del:1});qs()}
+}
+async function pull(col){
+  if(!db||!navigator.onLine)return;
+  try{const s=await T(db.collection(col).get(),8000),m={};s.forEach(d=>m[d.id]=d.data());
+    QU.filter(j=>j.col===col&&!j.del).forEach(j=>m[j.id]={...(m[j.id]||{}),...j.data});
+    QU.filter(j=>j.col===col&&j.del).forEach(j=>delete m[j.id]);wr(col,m)}catch(e){console.warn(col,e)}
+}
+async function pullMe(){
+  if(!db||!user||!navigator.onLine)return;
+  try{const d=await T(db.collection('users').doc(user.uid).get(),6000);if(d.exists){const x=d.data();user.verified=!!x.verified;user.featuredUntil=x.featuredUntil||0;LS('slt_user',user)}}catch(e){}
+}
+async function flush(){
+  if(!QU.length||!db||!navigator.onLine)return;const rest=[];
+  for(const j of QU){try{await T(j.del?db.collection(j.col).doc(j.id).delete():db.collection(j.col).doc(j.id).set(j.data,{merge:true}),9000)}catch(e){rest.push(j)}}
+  QU.length=0;QU.push(...rest);qs();
+}
+async function refresh(){await flush();await Promise.all(['services','bookings','alerts','reviews','featuredRequests','verificationRequests'].map(pull).concat(pullMe()));mk()}
+const addAlert=(userId,title,message,type)=>save('alerts','al_'+Date.now().toString(36)+rid(3),{userId,title,message,type,isRead:false,createdAt:Date.now()});
+const persistUser=()=>{LS('slt_user',user);return save('users',user.uid,{uid:user.uid,name:user.name,phone:user.phone,role:user.role},1)};
+
+/* ========== DEMO DATA ========== */
+const D={
+Beauty:{Braids:[40,'Braids by Ama','Knotless by Efua','Cornrows by Abena','Boho Braids by Kojo','Twists by Akosua'],
+Makeup:[60,'Glam by Nana','Bridal Look by Esi','Soft Glam by Yaa','Party Makeup by Kofi','Natural Glow by Adwoa'],
+Nails:[35,'Nails by Fiifi','Acrylics by Mavis','Gel Polish by Ewura','Nail Art by Naa','Pedicure by Selina'],
+Lashes:[50,'Lashes by Dede','Volume Lashes by Pat','Classic Lashes by Rita','Mink Lashes by Zainab','Lash Lift by Cece']},
+Tech:{'Phone Repair':[30,'Screen Fix by Kwesi','Phone Doctor by Yaw','iFix Campus by Nii','Battery Swap by Sam','Water Rescue by Joe'],
+'Laptop Repair':[80,'LapFix by Eric','Laptop Clinic by Dan','Keyboard Fix by Paa','Windows Setup by Kobby','Screen Swap by Bright'],
+'Graphic Design':[50,'Logos by Kay','Flyers by Mimi','Posters by Ato','Brand Kit by Lily','Social Posts by Ken'],
+Printing:[5,'Quick Print by Opoku','Lecture Notes Print by Aba','Binding by Lamptey','Poster Print by Sena','Photocopy Hub by Tina']},
+Academic:{Tutoring:[30,'Maths Tutor by Prince','Chemistry Help by Gifty','Stats Class by Isaac','Physics Tutor by Aku','English Coach by Mark'],
+Assignments:[40,'Typing by Dora','Slides by Emma','Report Format by Joel','Proofreading by Hanna','Lab Reports by Sly'],
+'Research Help':[60,'Project Guide by Dr. Kwame','Data Analysis by Ruth','Lit Review by Gideon','Questionnaires by Pearl','Referencing by Bella']},
+Lifestyle:{Food:[25,'Jollof by Mama Esi','Waakye by Auntie Ama','Fried Rice by Chef Kojo','Smoothies by Fruity Nana','Banku by Maame Yaa'],
+Cleaning:[45,'Room Clean by Clean Crew','Laundry by Fresh Linda','Deep Clean by Sparkle Max','Hostel Wash by Tidy Tony','Ironing by Neat Nora'],
+Photography:[100,'Grad Shoots by Lens Kojo','Portraits by Snap Ama','Event Photos by Click Kwabs','Passport Pics by Quick Yaw','Video Edits by Reel Efe'],
+Thrift:[30,'Thrift by Sika','Sneakers by Kicks Fred','Dresses by Vintage Abla','Bags by Bag Bae','Denim by Jeans Joe']}};
+const IC={Beauty:'💅',Tech:'💻',Academic:'📚',Lifestyle:'🛍️'};
+const IM={Beauty:['1522337360788-8b13dee7a37e','1487412947147-5cebf100ffc2','1604654894610-df63bc536371','1560066984-138dadb4c035','1519415943484-9fa1873496d4','1596462502278-27bfdc403348'],
+Tech:['1498050108023-c5249f4df085','1518770660439-4636190af475','1512941937669-90a1b58e7e9c','1531297484001-80022131f5a1','1550745165-9bc0b252726f','1581092160562-40aa08e78837'],
+Academic:['1503676260728-1c00da094a0b','1434030216411-0b793f4b4173','1456513080510-7bf3a84b82f8','1427504494785-3a9ca7044f45','1521587760476-6c12a4b040da','1481627834876-b7833e8f5570'],
+Lifestyle:['1504674900247-0877df9cc836','1516035069371-29a1b244cc32','1556911220-bff31c812dba','1441986300917-64674bd600d8','1581578731548-c64695cc6952','1523381210434-271e8be1f52b']};
+const U=i=>`https://images.unsplash.com/photo-${i}?w=600&q=70&auto=format&fit=crop`;
+const PRE=[IM.Beauty[0],IM.Tech[0],IM.Academic[0],IM.Lifestyle[0],IM.Lifestyle[1],IM.Beauty[1]];
+const LOC=['UCC Science Market','Amamoma Junction','Apewosika','Kotokuraba Market','Ayensu Hostel Area','Old Site, UCC'];
+const RV=['Very neat and on time, will book again!','Great price for students 👌','Fast service, loved the result','Friendly and professional','Worth every cedi','Quick and clean work'],RN=['Akua','Kwame','Efua','Nana','Yaw','Abena'];
+function demo(){let a=[],n=0;
+  Object.entries(D).forEach(([h,subs])=>Object.entries(subs).forEach(([s,v],si)=>v.slice(1).forEach((t,i)=>{n++;const fd=s==='Food';
+    a.push({id:'demo'+n,title:t,category:h,subCategory:s,price:Math.max(1,Math.round(v[0]*(1+i*.25))),entrepreneurName:t.split(' by ')[1]||t,
+    entrepreneurPhone:'0244'+String(100000+n*7331).slice(0,6),location:LOC[n%6]+', Cape Coast',
+    locationLat:+(5.116+((n*37)%21-10)*.0009).toFixed(5),locationLng:+(-1.2976+((n*53)%21-10)*.0009).toFixed(5),
+    image:U(IM[h][(si*5+i)%6]),description:`${t} – trusted ${s.toLowerCase()} service on campus. Fast, neat and student-friendly. Book your slot today!`,
+    workDays:fd?[0,1,2,3,4,5,6]:[1,2,3,4,5,6],openTime:fd?'07:00':'08:00',closeTime:fd?'20:00':'18:00',
+    verified:i%2===0||i===3,featured:i===0&&si%2===0,featuredExpiresAt:Date.now()+6048e5,createdAt:n})})));
+  return a}
+const demoRev=()=>{const a=[];for(let n=2;n<=75;n+=2)a.push({id:'dr'+n,serviceId:'demo'+n,name:RN[n%6],rating:n%3?4:5,comment:RV[n%6],createdAt:Date.now()-n*36e5});return a};
+function mk(){
+  S.services=[...get('services').filter(x=>!x.id.startsWith('demo')&&x.title).sort((a,b)=>b.createdAt-a.createdAt),...demo()];
+  S.bookings=get('bookings').sort((a,b)=>b.createdAt-a.createdAt);
+  S.alerts=get('alerts').sort((a,b)=>b.createdAt-a.createdAt);
+  S.reviews=[...get('reviews'),...demoRev()].sort((a,b)=>b.createdAt-a.createdAt);
+  S.fr=get('featuredRequests');S.vr=get('verificationRequests');
+  S.rt={};S.reviews.forEach(r=>{const x=S.rt[r.serviceId]||(S.rt[r.serviceId]={t:0,n:0});x.t+=r.rating;x.n++});
+  S.services.forEach(s=>{if(s.featured&&s.featuredExpiresAt<Date.now()&&!s.id.startsWith('demo')){s.featured=false;save('services',s.id,{featured:false},1)}});
+  if(user&&user.featuredUntil&&user.featuredUntil<Date.now()){user.featuredUntil=0;LS('slt_user',user);save('users',user.uid,{featuredUntil:0},1)}
+  badge()}
+const rate=id=>{const x=S.rt[id];return x?{n:x.n,avg:x.t/x.n}:{n:0,avg:0}};
+const feat=()=>S.services.filter(s=>s.featured&&(s.featuredExpiresAt||0)>Date.now());
+const myAlerts=()=>S.alerts.filter(a=>a.userId===user?.uid);
+const badge=()=>{const n=user?myAlerts().filter(a=>!a.isRead).length:0,b=$('#bdg');b.textContent=n;b.style.display=n?'block':'none'};
+
+/* ========== UI PIECES ========== */
+const hdr=s=>`<div class="hdr ${s?'sm':''}">${s?'<button class="back" onclick="back()">← Back</button>':''}<i class="sh s1"></i><i class="sh s2"></i><i class="sh s3"></i><i class="sh s4"></i><div class="logo">SLOTIFY</div><div class="tag">Book campus services in seconds ⚡</div></div>`;
+const stars=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+const card=s=>{const r=rate(s.id);return `<div class="card" onclick="go('svc','${s.id}')"><div class="im">${imgTag(s)}</div><div class="cb"><div class="t">${esc(s.title)}${tk(s)}</div><div class="m">${r.n?`<span class="st">★ ${r.avg.toFixed(1)}</span> (${r.n}) · `:''}${esc(s.subCategory)}</div><div class="m">📍 ${esc(s.location)}</div><div class="pr">GH₵${s.price}${s.d!=null?` · ${s.d.toFixed(1)} km`:''}</div></div>${s.featured&&(s.featuredExpiresAt||0)>Date.now()?'<span class="fb">FEATURED</span>':''}</div>`};
+function sheet(h){shut();const o=document.createElement('div');o.className='ov';o.innerHTML=`<div class="sheet">${h}<button class="btn o w" onclick="shut()">Close</button></div>`;o.onclick=e=>{if(e.target===o)shut()};document.body.appendChild(o)}
+const shut=()=>document.querySelectorAll('.ov').forEach(o=>o.remove());
+const cp=t=>{(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Number copied ✅')).catch(()=>prompt('Copy this number:',t))};
+const momo=a=>`<div class="mm">Send <b>GH₵${(+a).toFixed(2)}</b> to <b>0203720887</b><br>Name: <b>Kenneth Tandoh</b><br>Ref: <b>SLOTIFY</b><br><button class="btn l sm" onclick="cp('0203720887')">📋 Copy Number</button></div>`;
+function paySheet(title,amt,extra,fn){PAY=fn;sheet(`<h3>${title}</h3>${extra||''}<p><b>Send with MoMo:</b></p>${momo(amt)}<label>Transaction ID</label><input class="in" id="tx" placeholder="e.g. 12345678901"><label>Phone used to pay</label><input class="in" id="tp" type="tel" value="${esc(user.phone||'')}" placeholder="0241234567"><button class="btn k w" onclick="payGo()">✅ I Have Paid</button>`)}
+async function payGo(){const tx=$('#tx').value.trim(),ph=$('#tp').value.trim();if(tx.length<6||ph.length<9)return toast('Enter the Transaction ID and the phone you paid with 🙏');
+  try{await PAY(tx,ph)}catch(e){console.error(e);toast('Saved on your phone – will sync when network is back ✅')}}
+const instBtn=()=>isApp()?'':`<div class="box" style="display:flex;align-items:center;gap:10px;justify-content:space-between"><b>📲 Get the SLOTIFY app</b><button class="btn l sm" onclick="install()">Install App</button></div>`;
+async function install(){
+  if(DIP){DIP.prompt();try{await DIP.userChoice}catch(e){}DIP=null;return}
+  sheet(`<h3>📲 Install SLOTIFY</h3><p style="line-height:1.8"><b>Android (Chrome):</b> tap the ⋮ menu → <b>Install app</b> or <b>Add to Home screen</b>.<br><b>iPhone (Safari):</b> tap Share ⬆️ → <b>Add to Home Screen</b>.<br><b>Laptop (Chrome/Edge):</b> click the install icon at the right end of the address bar.</p>`)}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();DIP=e});
+window.addEventListener('appinstalled',()=>{DIP=null;toast('SLOTIFY installed 🎉');if(user)draw()});
+
+/* ========== PAGES ========== */
+const LBL={pending:'Pending Confirmation',confirmed:'Confirmed',cancelled:'Cancelled',completed:'Completed'};
+const ICON={payment:'💳',confirmed:'✅',featured:'⭐',booking:'🎟️',welcome:'🎉',review:'💬'};
+const PG={
+home:()=>{const f=feat(),pop=[...S.services].filter(s=>!s.featured).sort((a,b)=>b.verified-a.verified).slice(0,8);
+ return hdr()+`<div class="sec"><div class="srch"><input class="in" placeholder="🔍 Search braids, repair, tutors…" onkeydown="if(event.key=='Enter')sq(this.value)"><button class="btn l" onclick="sq($('.srch input').value)">Go</button></div></div>
+ <div class="sec">${instBtn()}<h2>⭐ Featured <small class="m">swipe ↔</small></h2>${f.length?`<div class="hs">${f.map(card).join('')}</div>`:'<div class="box">No featured services yet – be the first! Sellers: go to Profile → Get Featured.</div>'}</div>
+ <div class="sec"><h2>Categories</h2><div class="cat">${Object.keys(D).map(h=>`<div class="ct" onclick="cat('${h}')">${IC[h]}<br>${h}<br><small>${Object.keys(D[h]).join(' · ')}</small></div>`).join('')}</div></div>
+ <div class="sec"><h2>🔥 Popular on campus</h2><div class="grid">${pop.map(card).join('')}</div></div>`},
+explore:()=>hdr(1)+`<div class="sec"><input class="in" value="${esc(Q)}" placeholder="🔍 Search services…" oninput="Q=this.value;$('#grid').innerHTML=list()">
+ <div class="chips"><span class="chip ${!H?'on':''}" onclick="H='';SB='';draw()">All</span>${Object.keys(D).map(h=>`<span class="chip ${H===h?'on':''}" onclick="H='${h}';SB='';draw()">${h}</span>`).join('')}<span class="chip ${NEAR?'on':''}" onclick="near()">📍 Near Me</span></div>
+ ${H?`<div class="chips">${Object.keys(D[H]).map(s=>`<span class="chip ${SB===s?'on':''}" onclick="SB='${s}';draw()">${s}</span>`).join('')}</div>`:''}
+ <div class="grid" id="grid">${list()}</div></div>`,
+svc:id=>{const s=S.services.find(x=>x.id===id);if(!s)return hdr(1)+'<div class="sec"><div class="box">Service not found 😕</div></div>';
+ const [la,lo]=ll(s),fee=(s.price*.1).toFixed(2),ims=imgs(s),r=rate(s.id),rv=S.reviews.filter(x=>x.serviceId===s.id).slice(0,10);
+ return hdr(1)+`<div class="sec"><div class="box" style="padding:0;overflow:hidden"><div class="im" id="mi" style="height:240px">${imgTag({image:ims[0]})}</div>
+ ${ims.length>1?`<div class="chips" style="padding:8px">${ims.map((u,i)=>`<img src="${esc(u)}" width="60" height="60" alt="" style="border-radius:10px;object-fit:cover;flex:none;cursor:pointer" onclick="pic('${s.id}',${i})">`).join('')}</div>`:''}
+ <div style="padding:14px">${s.featured&&(s.featuredExpiresAt||0)>Date.now()?'<span class="pill pending">FEATURED</span>':''}<h2 style="margin:6px 0;justify-content:flex-start">${esc(s.title)}${tk(s)}</h2>
+ <div class="pr" style="font-size:24px">GH₵${s.price}</div><p class="m">${esc(s.category)} › ${esc(s.subCategory)}${r.n?` · <span class="st">★ ${r.avg.toFixed(1)}</span> (${r.n})`:''}</p><p style="margin:8px 0">${esc(s.description)}</p>
+ <p>👤 ${esc(s.entrepreneurName)}${tk(s)} · <a href="tel:${esc(s.entrepreneurPhone)}">${esc(s.entrepreneurPhone)}</a></p><p>🕒 ${wdText(s)} · ${t12(s.openTime||'08:00')} – ${t12(s.closeTime||'18:00')}</p><p>📍 ${esc(s.location)}</p>
+ <iframe class="map" loading="lazy" src="https://maps.google.com/maps?q=${la},${lo}&output=embed"></iframe>
+ <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><a class="btn o sm" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${la},${lo}">🧭 Get Directions</a><a class="btn o sm" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.location)}">🗺️ Open in Google Maps</a></div>
+ <button class="btn l w" onclick="book('${s.id}')">Book Now · pay only 10% (GH₵${fee})</button></div></div>
+ <div class="box"><h2>💬 Reviews ${r.n?`<span class="st">★ ${r.avg.toFixed(1)} · ${r.n}</span>`:''}</h2>${rv.map(x=>`<div style="border-top:1px solid rgba(108,0,255,.15);padding:8px 0"><b>${esc(x.name)}</b> <span class="st">${stars(x.rating)}</span><p>${esc(x.comment)}</p><p class="m">${ago(x.createdAt)}</p></div>`).join('')||'<p class="m">No reviews yet. Be the first!</p>'}
+ <button class="btn o w" onclick="review('${s.id}')">✍️ Write a review</button></div></div>`},
+bookings:()=>{const mine=S.bookings.filter(b=>b.uid===user.uid),td=iso(new Date()),live=b=>['pending','confirmed'].includes(b.status);
+ const f={Upcoming:b=>live(b)&&b.date>=td,Past:b=>live(b)&&b.date<td,Cancelled:b=>b.status==='cancelled',Completed:b=>b.status==='completed'},rows=mine.filter(f[TAB]);
+ return hdr(1)+`<div class="sec"><h2>🎟️ My Bookings</h2><div class="chips">${Object.keys(f).map(t=>`<span class="chip ${t===TAB?'on':''}" onclick="TAB='${t}';draw()">${t}</span>`).join('')}</div>
+ ${rows.map(b=>`<div class="box"><div style="display:flex;justify-content:space-between;align-items:center"><b>${esc(b.bookingId||'ID after confirmation')}</b><span class="pill ${b.status}">${LBL[b.status]}</span></div><div class="t" style="margin-top:6px">${esc(b.serviceTitle)}</div><p class="m">📅 ${esc(b.date)}${b.time?' · 🕒 '+t12(b.time):''}<br>Price GH₵${b.price} · Fee paid GH₵${(+b.bookingFee).toFixed(2)}</p>${b.status==='pending'?`<button class="btn k sm" onclick="setB('${b.id}','cancelled')">Cancel</button>`:''}${['confirmed','completed'].includes(b.status)?`<button class="btn o sm" onclick="review('${b.serviceId}')">⭐ Review</button>`:''}</div>`).join('')||'<div class="box">Nothing here yet. Go Explore and book a slot! 🔥</div>'}</div>`},
+alerts:()=>{const a=myAlerts();return hdr(1)+`<div class="sec"><h2>🔔 Alerts</h2>${a.map(x=>`<div class="box al" onclick="rd('${x.id}')"><span class="dot" style="visibility:${x.isRead?'hidden':'visible'}"></span><div style="${x.isRead?'':'font-weight:900'}">${ICON[x.type]||'🔔'} ${esc(x.title)}<div class="m" style="font-weight:400">${esc(x.message)} · ${ago(x.createdAt)}</div></div></div>`).join('')||'<div class="box">No alerts yet 🎉</div>'}</div>`},
+profile:()=>{const u=user,ent=u.role==='entrepreneur';
+ return hdr(1)+`<div class="sec"><div class="box" style="text-align:center"><div style="font-size:48px">${ent?'🛍️':'🎓'}</div><h2 style="justify-content:center">${esc(u.name)}${tk(u)}</h2><p>📞 ${esc(u.phone||'No phone yet')}</p><span class="pill pending">${ent?'Seller / Entrepreneur':'Customer'}</span>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px"><button class="btn sm" onclick="editP()">Edit Profile</button><button class="btn k sm" onclick="swRole()">Switch to ${ent?'Booking':'Selling'}</button><button class="btn o sm" onclick="logout()">Logout</button></div></div>
+ ${instBtn()}<div class="box" onclick="go('bookings')" style="cursor:pointer"><b>🎟️ My Bookings</b> → <span class="m">${S.bookings.filter(b=>b.uid===u.uid).length} total</span></div>
+ ${ent?dash():''}</div>`}
+};
+const imgs=s=>s.images&&s.images.length?s.images:[s.image];
+const pic=(id,i)=>{const s=S.services.find(x=>x.id===id);$('#mi').innerHTML=imgTag({image:imgs(s)[i]})};
+function list(){let a=filt();if(NEAR&&POS){a.forEach(s=>s.d=km(POS,s));a.sort((x,y)=>x.d-y.d)}return a.length?a.map(card).join(''):'<div class="box" style="grid-column:1/-1">No service found 😕 Try another word.</div>'}
+function filt(){const q=Q.toLowerCase();return S.services.filter(s=>(!H||s.category===H)&&(!SB||s.subCategory===SB)&&(!q||(s.title+s.category+s.subCategory+s.location+s.description+s.entrepreneurName).toLowerCase().includes(q))).map(s=>({...s}))}
+function dash(){const my=S.services.filter(s=>s.ownerUid===user.uid),ids=my.map(s=>s.id),bks=S.bookings.filter(b=>ids.includes(b.serviceId)),earn=bks.filter(b=>['confirmed','completed'].includes(b.status)).reduce((t,b)=>t+ +b.price,0),fu=user.featuredUntil>Date.now(),
+ vp=S.vr.some(v=>v.uid===user.uid&&v.status==='pending'),fp=sid=>S.fr.some(f=>f.serviceId===sid&&f.status==='pending'),fpa=S.fr.some(f=>f.uid===user.uid&&f.status==='pending');
+ return `<div class="box"><h2>📊 Seller Dashboard</h2><div class="grid" style="grid-template-columns:repeat(2,1fr)"><div class="box"><b>${bks.length}</b><p class="m">Total Bookings</p></div><div class="box"><b>GH₵${earn}</b><p class="m">Total Earnings</p></div><div class="box"><b>${fu?'Active ⭐':fpa?'Pending ⏳':'Not featured'}</b><p class="m">${fu?'Until '+new Date(user.featuredUntil).toLocaleDateString():'Featured status'}</p></div><div class="box"><b>${user.verified?'Verified ✔':vp?'Pending ⏳':'Not verified'}</b><p class="m">Verification</p></div></div>
+ <button class="btn l w" onclick="payVer()">✔ Get Verified GH₵20</button><button class="btn k w" onclick="payFeat()">⭐ Get Featured GH₵15/week</button><button class="btn w" onclick="svcForm()">➕ Add New Service</button>
+ <h2 style="margin-top:16px">My Services</h2>${my.map(s=>`<div class="box al" style="cursor:default"><div style="flex:1"><b>${esc(s.title)}</b>${tk(s)}${s.featured?' ⭐':fp(s.id)?' ⏳':''}<p class="m">GH₵${s.price} · ${esc(s.subCategory)} · ${wdText(s)}</p></div><button class="btn sm" onclick="svcForm('${s.id}')">Edit</button><button class="btn k sm" onclick="delSvc('${s.id}')">Delete</button></div>`).join('')||'<p class="m">No services yet. Add your first one!</p>'}</div>`}
+
+/* ========== ROUTER (with Back support) ========== */
+function draw(){try{$('#pg').innerHTML=PG[P](A);banner()}catch(e){console.error(e);$('#pg').innerHTML=hdr(1)+'<div class="sec"><div class="box">😅 Something small went wrong loading this page.<button class="btn w" onclick="tab(\'home\')">Back to Home</button></div></div>'}}
+function go(p,a,np,rs){
+  if(rs)HS=[];else if(!np&&(P!==p||A!==(a??null)))HS.push([P,A]);
+  if(!np)history.pushState(null,'');
+  P=p;A=a??null;draw();scrollTo(0,0);
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===(p==='svc'?'explore':p)));
+  if(['bookings','alerts','profile'].includes(p))refresh().then(()=>{if(P===p&&!$('.ov'))draw()})}
+const tab=p=>go(p,null,0,1);
+const back=()=>HS.length?history.back():go('home',null,1,1);
+window.addEventListener('popstate',()=>{if($('.ov')){shut();history.pushState(null,'');return}const h=HS.pop();if(h)go(h[0],h[1],1);else if(P!=='home')go('home',null,1,1)});
+const sq=v=>{Q=v;H='';SB='';go('explore')};
+const cat=h=>{H=h;SB='';Q='';go('explore')};
+async function near(){if(NEAR){NEAR=false;return draw()}toast('Finding spots near you…');const p=await getPos();if(!p)return toast('Turn on location to use Near Me 📍');NEAR=true;draw()}
+function banner(){const f=feat(),b=$('#ban');if(!user||!f.length||$('#wel').style.display==='block'){b.style.display='none';return}const s=f[BI%f.length];b.style.display='block';b.innerHTML=`⭐ Featured: ${esc(s.title)} - GH₵${s.price} - <i>Book Now</i>`;b.onclick=()=>book(s.id)}
+setInterval(()=>{BI++;banner()},4000);
+
+/* ========== WELCOME / ACCOUNT ========== */
+function welcome(){$('#wel').style.display='block';$('nav').style.display='none';$('#fab').style.display='none';$('#ban').style.display='none';
+ $('#wel').innerHTML=hdr()+`<div class="sec" style="max-width:480px;margin:auto"><div class="box"><h2>Welcome! 👋</h2><input class="in" id="wn" placeholder="Your name"><input class="in" id="wp" type="tel" placeholder="Phone e.g. 0241234567"><div class="rl"><button id="r1" class="on" onclick="pickRole('customer')">🎟️ I want to Book</button><button id="r2" onclick="pickRole('entrepreneur')">🛍️ I want to Sell</button></div><button class="btn l w" onclick="enter()">Continue as Guest 🚀</button></div>${instBtn()}</div>`}
+const pickRole=r=>{ROLE=r;$('#r1').classList.toggle('on',r==='customer');$('#r2').classList.toggle('on',r==='entrepreneur')};
+async function enter(){const name=$('#wn').value.trim()||'Guest',phone=$('#wp').value.trim();let id;
+ try{id=(await T(auth.signInAnonymously(),8000)).user.uid}catch(e){id='local-'+rid(10)}
+ user={uid:id,name,phone,role:ROLE,verified:false,featuredUntil:0,createdAt:Date.now()};LS('slt_user',user);
+ save('users',id,user,1);addAlert(id,'New Featured service near you','Braids by Ama is FEATURED – GH₵40. Tap Explore to book!','featured');start()}
+function start(){$('#wel').style.display='none';$('nav').style.display='flex';$('#fab').style.display='block';mk();go('home',null,1,1);refresh().then(()=>{if(P==='home'&&!$('.ov'))draw()})}
+function editP(){sheet(`<h3>Edit Profile</h3><input class="in" id="en" value="${esc(user.name)}" placeholder="Name"><input class="in" id="ep" type="tel" value="${esc(user.phone)}" placeholder="Phone"><button class="btn w" onclick="saveP()">Save</button>`)}
+async function saveP(){user.name=$('#en').value.trim()||user.name;user.phone=$('#ep').value.trim();shut();draw();toast('Profile updated ✅');await persistUser()}
+async function swRole(){user.role=user.role==='customer'?'entrepreneur':'customer';draw();toast('Now in '+(user.role==='customer'?'Booking':'Selling')+' mode');await persistUser()}
+async function logout(){if(!confirm('Log out of SLOTIFY?'))return;try{await auth.signOut()}catch(e){}LS('slt_user',null);user=null;HS=[];welcome()}
+async function rd(id){const a=S.alerts.find(x=>x.id===id);if(a&&!a.isRead){a.isRead=true;badge();draw();await save('alerts',id,{isRead:true},1)}}
+
+/* ========== BOOKING (day + time within seller hours) + MOMO ========== */
+function book(id){const s=S.services.find(x=>x.id===id);if(!s)return;const [la,lo]=ll(s),fee=+(s.price*.1).toFixed(2),rest=(s.price-fee).toFixed(2),ds=days(s);BS={id,date:'',time:''};
+ sheet(`<h3>📅 Book: ${esc(s.title)}</h3><div class="box" style="line-height:1.8">Service: <b>${esc(s.title)}</b><br>Price: <b>GH₵${s.price}</b><br>Booking Fee (10%): <b style="color:#FF2E93">GH₵${fee.toFixed(2)}</b><br>Remaining 90%: <b>GH₵${rest}</b> – pay on arrival</div>
+ <p class="m">🕒 Open ${wdText(s)} · ${t12(s.openTime||'08:00')} – ${t12(s.closeTime||'18:00')}</p>
+ <label>Pick a day</label><div class="chips" id="bdays">${ds.map(d=>`<span class="chip" data-d="${iso(d)}" onclick="pickD('${iso(d)}')">${DN[d.getDay()]} ${d.getDate()} ${MN[d.getMonth()]}</span>`).join('')||'<p class="m">Seller has no working days set.</p>'}</div>
+ <label>Pick a time</label><div class="tg" id="tm"><p class="m">Choose a day first 👆</p></div>
+ <iframe class="map" style="height:150px" src="https://maps.google.com/maps?q=${la},${lo}&output=embed"></iframe><p class="m" id="bdist">📍 ${esc(s.location)}</p>
+ <button class="btn l w" onclick="bookPay('${s.id}')">Continue to Pay GH₵${fee.toFixed(2)}</button>`);
+ getPos().then(p=>{if(p&&$('#bdist'))$('#bdist').textContent=`📍 ${s.location} · ${km(p,s).toFixed(1)} km from you`})}
+function pickD(d){BS.date=d;BS.time='';document.querySelectorAll('#bdays .chip').forEach(c=>c.classList.toggle('on',c.dataset.d===d));
+ const s=S.services.find(x=>x.id===BS.id),taken=S.bookings.filter(b=>b.serviceId===s.id&&b.date===d&&['pending','confirmed'].includes(b.status)).map(b=>b.time),now=new Date(),nm=now.getHours()*60+now.getMinutes()+30,isT=d===iso(now),a=slots(s).filter(t=>!isT||toM(t)>nm);
+ $('#tm').innerHTML=a.length?a.map(t=>`<span class="chip ${taken.includes(t)?'off':''}" data-t="${t}" onclick="pickT('${t}')">${t12(t)}</span>`).join(''):'<p class="m">No more slots today – pick another day.</p>'}
+function pickT(t){BS.time=t;document.querySelectorAll('#tm .chip').forEach(c=>c.classList.toggle('on',c.dataset.t===t))}
+function bookPay(id){const s=S.services.find(x=>x.id===id);if(!BS.date||!BS.time)return toast('Pick a day and a time first 📅');const fee=+(s.price*.1).toFixed(2),date=BS.date,time=BS.time;
+ paySheet('💳 Pay Booking Fee',fee,`<div class="box">${esc(s.title)}<br>📅 ${esc(date)} · 🕒 ${t12(time)}<br>Booking fee: <b>GH₵${fee.toFixed(2)}</b> (10%)</div>`,async(tx,ph)=>{
+  if(S.bookings.some(b=>b.serviceId===s.id&&b.date===date&&b.time===time&&['pending','confirmed'].includes(b.status)))return toast('Oops, that time was just taken. Pick another 🙏');
+  const bid='bk_'+Date.now().toString(36)+rid(3);
+  const p=save('bookings',bid,{uid:user.uid,bookingId:'',serviceId:s.id,serviceTitle:s.title,customerName:user.name,customerPhone:ph,price:s.price,bookingFee:fee,transactionId:tx,status:'pending',date,time,createdAt:Date.now()});
+  addAlert(user.uid,'Payment pending','Payment pending - waiting for confirmation ('+s.title+')','payment');
+  if(s.ownerUid)addAlert(s.ownerUid,'New booking request','New request for '+s.title+' on '+date+' at '+t12(time),'booking');
+  shut();TAB='Upcoming';tab('bookings');toast('Booking sent! Waiting for confirmation ⏳');await p})}
+async function setB(id,st){if(!confirm('Cancel this booking?'))return;const b=S.bookings.find(x=>x.id===id);if(!b)return;b.status=st;draw();await save('bookings',id,{status:st},1);mk();draw()}
+
+/* ========== REVIEWS ========== */
+function review(sid){const s=S.services.find(x=>x.id===sid);if(!s)return;
+ if(!S.bookings.some(b=>b.uid===user.uid&&b.serviceId===sid&&['confirmed','completed'].includes(b.status)))return toast('Book this service first – then you can review it ⭐');
+ const old=S.reviews.find(r=>r.id===user.uid+'_'+sid);STAR=old?old.rating:5;
+ sheet(`<h3>✍️ Review: ${esc(s.title)}</h3><div id="stars" style="text-align:center"></div><textarea class="in" id="rc" rows="3" placeholder="How was it?">${esc(old?old.comment:'')}</textarea><button class="btn l w" onclick="saveRev('${sid}')">Post Review</button>`);paint()}
+const paint=()=>{$('#stars').innerHTML=[1,2,3,4,5].map(n=>`<button class="star" onclick="STAR=${n};paint()">${n<=STAR?'★':'☆'}</button>`).join('')};
+async function saveRev(sid){const c=$('#rc').value.trim();if(!c)return toast('Write a short comment 🙏');const s=S.services.find(x=>x.id===sid);
+ const p=save('reviews',user.uid+'_'+sid,{serviceId:sid,uid:user.uid,name:user.name,rating:STAR,comment:c,createdAt:Date.now()});
+ if(s&&s.ownerUid)addAlert(s.ownerUid,'New review','New '+STAR+'★ review on '+s.title,'review');shut();draw();toast('Thanks for your review ⭐');await p}
+
+/* ========== SELLER: SERVICES (photos + hours), VERIFIED, FEATURED ========== */
+function svcForm(id){const s=id?S.services.find(x=>x.id===id):{},cat=s.category||'Beauty',wd=wdays(s);PICS=[...(s.images&&s.images.length?s.images:s.image?[s.image]:[])];
+ sheet(`<h3>${id?'Edit':'Add New'} Service</h3><input type="hidden" id="fid" value="${id||''}">
+ <input class="in" id="ft" placeholder="Service title e.g. Braids by Ama" value="${esc(s.title||'')}">
+ <select class="in" id="fc" onchange="subs()">${Object.keys(D).map(c=>`<option ${c===cat?'selected':''}>${c}</option>`).join('')}</select><select class="in" id="fs"></select>
+ <input class="in" id="fp" type="number" min="1" placeholder="Price (GH₵)" value="${s.price||''}">
+ <textarea class="in" id="fd" rows="3" placeholder="Description">${esc(s.description||'')}</textarea>
+ <label>Working days</label><div class="chips" id="wds">${[1,2,3,4,5,6,0].map(d=>`<span class="chip ${wd.includes(d)?'on':''}" data-d="${d}" onclick="this.classList.toggle('on')">${DN[d]}</span>`).join('')}</div>
+ <div style="display:flex;gap:8px"><div style="flex:1"><label>Opens</label><input class="in" type="time" id="fo" value="${s.openTime||'08:00'}"></div><div style="flex:1"><label>Closes</label><input class="in" type="time" id="fcl" value="${s.closeTime||'18:00'}"></div></div>
+ <input class="in" id="fl" placeholder="Location e.g. Amamoma, Cape Coast" value="${esc(s.location||'')}">
+ <input type="hidden" id="la" value="${s.locationLat||''}"><input type="hidden" id="lo" value="${s.locationLng||''}">
+ <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" onclick="myLoc()">📍 Use My Location</button><button class="btn k sm" onclick="pin()">🗺️ Drop Pin on Map</button></div>
+ <p class="m" id="lt">${s.locationLat?`📍 Pin saved: ${s.locationLat}, ${s.locationLng}`:''}</p><div id="pinbox" style="display:none"><div id="pinmap" style="height:220px;border-radius:14px"></div><p class="m">Tap the map to drop your pin</p></div>
+ <label>Photos (up to 4)</label><div class="chips" id="pics" style="padding-top:10px"></div>
+ <input type="file" id="pf" accept="image/*" multiple hidden onchange="fileSel(this)">
+ <button class="btn sm" onclick="$('#pf').click()">📷 Upload from phone</button>
+ <div style="display:flex;gap:6px;margin-top:8px"><input class="in" id="pu" style="margin:0" placeholder="…or paste image URL"><button class="btn o sm" onclick="addPic($('#pu').value.trim());$('#pu').value=''">Add</button></div>
+ <p class="m" style="margin-top:8px">Or tap a sample photo:</p><div class="chips">${PRE.map(u=>`<img src="${U(u)}" width="60" height="60" alt="" style="border-radius:12px;object-fit:cover;flex:none;cursor:pointer" onclick="addPic(this.src)">`).join('')}</div>
+ <button class="btn l w" onclick="saveSvc()">💾 Save Service</button>`);subs(s.subCategory);renderPics()}
+const subs=sel=>{$('#fs').innerHTML=Object.keys(D[$('#fc').value]).map(x=>`<option ${x===sel?'selected':''}>${x}</option>`).join('')};
+const renderPics=()=>{$('#pics').innerHTML=PICS.map((u,i)=>`<div style="position:relative;flex:none"><img src="${esc(u)}" width="72" height="72" alt="" style="border-radius:12px;object-fit:cover"><button class="x" onclick="PICS.splice(${i},1);renderPics()">×</button></div>`).join('')||'<p class="m">No photos yet – add at least one 📷</p>'};
+const addPic=u=>{if(!u)return;if(PICS.length>=4)return toast('Max 4 photos 📷');PICS.push(u);renderPics()};
+const shrink=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const k=Math.min(1,720/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.65))};i.onerror=rej;i.src=r.result};r.onerror=rej;r.readAsDataURL(f)});
+async function fileSel(inp){for(const f of [...inp.files]){if(PICS.length>=4){toast('Max 4 photos 📷');break}try{PICS.push(await shrink(f))}catch(e){toast('That photo could not be read 😕')}}inp.value='';renderPics()}
+const setPin=(a,b)=>{$('#la').value=a.toFixed(6);$('#lo').value=b.toFixed(6);$('#lt').textContent=`📍 Pin saved: ${a.toFixed(5)}, ${b.toFixed(5)}`};
+async function myLoc(){toast('Getting your location…');const p=await getPos();if(!p)return toast('Could not get location – drop a pin instead 🗺️');setPin(p.lat,p.lng);if(!$('#fl').value)$('#fl').value='My current location'}
+function pin(){const bx=$('#pinbox');bx.style.display='block';
+ const init=()=>{if(bx._m)return;const m=L.map('pinmap').setView([+$('#la').value||5.116,+$('#lo').value||-1.2976],15);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(m);let mk2;
+  const put=(a,b)=>{mk2?mk2.setLatLng([a,b]):mk2=L.marker([a,b]).addTo(m);setPin(a,b)};if($('#la').value)put(+$('#la').value,+$('#lo').value);m.on('click',e=>put(e.latlng.lat,e.latlng.lng));bx._m=m;setTimeout(()=>m.invalidateSize(),250)};
+ if(window.L)return init();const c=document.createElement('link');c.rel='stylesheet';c.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(c);
+ const s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';s.onload=init;s.onerror=()=>toast('Map needs internet – use My Location instead 📍');document.head.appendChild(s)}
+async function saveSvc(){const id=$('#fid').value||'svc_'+Date.now().toString(36)+rid(3),old=S.services.find(x=>x.id===id)||{},title=$('#ft').value.trim(),price=+$('#fp').value,
+ wd=[...document.querySelectorAll('#wds .chip.on')].map(c=>+c.dataset.d),op=$('#fo').value,cl=$('#fcl').value;
+ if(!title||!(price>0))return toast('Add a title and a price 🙏');
+ if(!wd.length)return toast('Pick at least one working day 📅');
+ if(!op||!cl||toM(op)>=toM(cl))return toast('Closing time must be after opening time 🕒');
+ const images=PICS.length?[...PICS]:[U(PRE[0])];if(JSON.stringify(images).length>750000)return toast('Photos are too big – remove one 📷');
+ const p=save('services',id,{title,category:$('#fc').value,subCategory:$('#fs').value,price,entrepreneurName:user.name,entrepreneurPhone:user.phone,location:$('#fl').value.trim()||'UCC Campus, Cape Coast',locationLat:+$('#la').value||5.116,locationLng:+$('#lo').value||-1.2976,image:images[0],images,workDays:wd,openTime:op,closeTime:cl,description:$('#fd').value.trim()||'Great campus service. Book your slot today!',verified:!!user.verified||!!old.verified,featured:!!old.featured,featuredExpiresAt:old.featuredExpiresAt||0,ownerUid:user.uid,createdAt:old.createdAt||Date.now()});
+ shut();draw();toast('Service saved – live in Explore ✅');await p}
+async function delSvc(id){if(!confirm('Delete this service?'))return;draw();await del('services',id);draw();toast('Deleted 🗑️')}
+function payVer(){if(user.verified)return toast('You are already Verified ✔');if(S.vr.some(v=>v.uid===user.uid&&v.status==='pending'))return toast('Your verification is already waiting for approval ⏳');
+ paySheet('✔ Get Verified – GH₵20',20,'<p class="m">Blue Tick on your profile and all your services. Added after we confirm your payment.</p>',async(tx,ph)=>{
+  const p=save('verificationRequests','vr_'+rid(8),{entrepreneur:user.name,uid:user.uid,paidAmount:20,transactionId:tx,phone:ph,status:'pending',createdAt:Date.now()});
+  addAlert(user.uid,'Verification pending','Payment received – waiting for admin approval ⏳','payment');shut();draw();toast('Sent! We will approve once payment is confirmed ⏳');await p})}
+function payFeat(){const my=S.services.filter(s=>s.ownerUid===user.uid);if(!my.length)return toast('Add a service first, then feature it ⭐');
+ paySheet('⭐ Get Featured – GH₵15 / week',15,`<label>Which service?</label><select class="in" id="fsv">${my.map(s=>`<option value="${s.id}">${esc(s.title)}</option>`).join('')}</select><p class="m">Shows at the TOP of Home for 7 days after we confirm your payment. Renew anytime.</p>`,async(tx,ph)=>{
+  const sid=$('#fsv').value,s=my.find(x=>x.id===sid);
+  if(S.fr.some(f=>f.serviceId===sid&&f.status==='pending'))return toast('That service already has a Featured request waiting ⏳');
+  const p=save('featuredRequests','fr_'+rid(8),{entrepreneur:user.name,uid:user.uid,serviceId:sid,serviceTitle:s.title,paidAmount:15,transactionId:tx,phone:ph,status:'pending',createdAt:Date.now()});
+  addAlert(user.uid,'Featured pending','Payment received for '+s.title+' – waiting for admin approval ⏳','payment');shut();draw();toast('Sent! We will approve once payment is confirmed ⏳');await p})}
+
+/* ========== AI SLOTTY ========== */
+const STOP='under below find want need for the and with any you service services show please some dey cheap than less max within gh'.split(' ');
+function chat(){sheet(`<h3>✨ Slotty</h3><div id="cm" style="max-height:50vh;overflow:auto">${CH}</div><div style="display:flex;gap:8px;margin-top:8px"><input class="in" id="ci" style="margin:0" placeholder="e.g. braids under 50" onkeydown="if(event.key=='Enter')say()"><button class="btn" onclick="say()">Send</button></div>`);if(!CH)bot("Hi, I'm Slotty! What service you dey find? ✨")}
+function bot(t,ids){const c=$('#cm');if(!c)return;c.insertAdjacentHTML('beforeend',`<div class="msg bot">${esc(t)}</div>`+(ids||[]).map(id=>{const s=S.services.find(x=>x.id===id);return `<div class="mc" onclick="shut();go('svc','${id}')"><div class="im">${imgTag(s)}</div><div><div class="t">${esc(s.title)}${tk(s)}</div><div class="pr">GH₵${s.price}</div></div></div>`}).join(''));c.scrollTop=c.scrollHeight;CH=c.innerHTML}
+function say(){const i=$('#ci'),q=i.value.trim();if(!q)return;i.value='';$('#cm').insertAdjacentHTML('beforeend',`<div class="msg me">${esc(q)}</div>`);setTimeout(()=>ask(q),300)}
+function ask(q){const l=q.toLowerCase();
+ if(/^(hi|hello|hey|yo|wassup|hola)\b/.test(l))return bot('Hey! 👋 Tell me the service and your budget, e.g. "nails under 40".');
+ if(/featur/.test(l))return bot('To get Featured ⭐: switch to Selling mode → Profile → Get Featured GH₵15/week, pay by MoMo and enter your Transaction ID. After admin confirms, your service shows at the TOP of Home for 7 days. You can renew anytime!');
+ if(/verif|blue tick|tick/.test(l))return bot('To get Verified ✔: Profile (Selling mode) → Get Verified GH₵20. After admin confirms your payment you get a Blue Tick on your profile and all your services.');
+ if(/install|app/.test(l))return bot('Tap the "Install App" button on Home or Profile. On iPhone use Safari → Share → Add to Home Screen. 📲');
+ if(/how.*book|book.*how/.test(l))return bot('How to book 🎟️\n1. Open a service, tap Book Now\n2. Pick a day and a time within the seller\'s working hours\n3. Send the 10% booking fee by MoMo to 0203720887 (Kenneth Tandoh, Ref: SLOTIFY)\n4. Enter Transaction ID + phone, tap I Have Paid\n5. We confirm and you get an alert + Booking ID. Pay the other 90% on arrival.');
+ if(/pay|momo|money/.test(l))return bot('Pay with MoMo 💳: send the 10% booking fee to 0203720887, Name: Kenneth Tandoh, Ref: SLOTIFY. Then enter your Transaction ID in the app. The other 90% you pay on arrival.');
+ if(/review|rating/.test(l))return bot('After your booking is confirmed, open the service (or Booking tab) and tap Write a review ⭐');
+ const m=l.match(/(?:under|below|less than|<|max|within)\s*(?:gh[₵c]?\s*)?(\d+)/),max=m?+m[1]:1e9,w=l.replace(/[^a-z ]/g,' ').split(/\s+/).filter(x=>x.length>2&&!STOP.includes(x)).map(x=>x.replace(/s$/,''));
+ if(!w.length&&!m)return bot('Try something like "braids under 50", "phone repair" or "tutor". You can also ask me how to book, pay, get Featured or Verified. ✨');
+ const r=S.services.filter(s=>s.price<=max&&(!w.length||w.some(x=>(s.title+' '+s.subCategory+' '+s.category+' '+s.location).toLowerCase().includes(x)))).sort((a,b)=>b.featured-a.featured).slice(0,4);
+ r.length?bot(`Chale, I find ${r.length} for you 🔥 Tap one to open:`,r.map(s=>s.id)):bot('Eii, I no see any match 😕 Try another word or a higher budget.')}
+
+/* ========== START ========== */
+window.addEventListener('online',()=>refresh().then(()=>{toast('Back online – synced ✅');if(!$('.ov'))draw()}));
+window.addEventListener('offline',()=>toast('You are offline – data saved on your phone 📴'));
+window.addEventListener('error',()=>toast('Small hiccup – please try again 🙏'));
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+user?start():welcome();
+</script>
+</body>
+</html>
